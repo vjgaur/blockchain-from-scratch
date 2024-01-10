@@ -40,174 +40,196 @@ impl StateMachine for ClothesMachine {
     type Transition = ClothesAction;
 
     fn next_state(starting_state: &ClothesState, t: &ClothesAction) -> ClothesState {
-        todo!("Exercise 3")
+        match starting_state {
+            ClothesState::Tattered => ClothesState::Tattered,
+            ClothesState::Clean(life) | ClothesState::Dirty(life) | ClothesState::Wet(life) => {
+                let new_life = if *life > 0 { life - 1 } else { 0 };
+
+                if new_life == 0 {
+                    return ClothesState::Tattered;
+                }
+
+                match t {
+                    ClothesAction::Wear => ClothesState::Dirty(new_life),
+                    ClothesAction::Wash => ClothesState::Wet(new_life),
+                    ClothesAction::Dry => match starting_state {
+                        ClothesState::Dirty(_) => ClothesState::Dirty(new_life),
+                        _ => ClothesState::Clean(new_life),
+                    },
+                }
+            }
+        }
     }
 }
+#[cfg(test)]
 
-#[test]
-fn sm_2_wear_clean_clothes() {
-    let start = ClothesState::Clean(4);
-    let end = ClothesMachine::next_state(&start, &ClothesAction::Wear);
-    let expected = ClothesState::Dirty(3);
-    assert_eq!(end, expected);
-}
+mod tests {
+    use super::*;
+    #[test]
+    fn sm_2_wear_clean_clothes() {
+        let start = ClothesState::Clean(4);
+        let end = ClothesMachine::next_state(&start, &ClothesAction::Wear);
+        let expected = ClothesState::Dirty(3);
+        assert_eq!(end, expected);
+    }
 
-#[test]
-fn sm_2_wear_dirty_clothes() {
-    let start = ClothesState::Dirty(4);
-    let end = ClothesMachine::next_state(&start, &ClothesAction::Wear);
-    let expected = ClothesState::Dirty(3);
-    assert_eq!(end, expected);
-}
+    #[test]
+    fn sm_2_wear_dirty_clothes() {
+        let start = ClothesState::Dirty(4);
+        let end = ClothesMachine::next_state(&start, &ClothesAction::Wear);
+        let expected = ClothesState::Dirty(3);
+        assert_eq!(end, expected);
+    }
 
-#[test]
-fn sm_2_wear_wet_clothes() {
-    let start = ClothesState::Wet(4);
-    let end = ClothesMachine::next_state(&start, &ClothesAction::Wear);
-    let expected = ClothesState::Dirty(3);
-    assert_eq!(end, expected);
-}
+    #[test]
+    fn sm_2_wear_wet_clothes() {
+        let start = ClothesState::Wet(4);
+        let end = ClothesMachine::next_state(&start, &ClothesAction::Wear);
+        let expected = ClothesState::Dirty(3);
+        assert_eq!(end, expected);
+    }
 
-#[test]
-fn sm_2_wear_tattered_clothes() {
-    let start = ClothesState::Tattered;
-    let end = ClothesMachine::next_state(&start, &ClothesAction::Wear);
-    let expected = ClothesState::Tattered;
-    assert_eq!(end, expected);
-}
+    #[test]
+    fn sm_2_wear_tattered_clothes() {
+        let start = ClothesState::Tattered;
+        let end = ClothesMachine::next_state(&start, &ClothesAction::Wear);
+        let expected = ClothesState::Tattered;
+        assert_eq!(end, expected);
+    }
 
-#[test]
-fn sm_2_wear_clean_until_tattered() {
-    let start = ClothesState::Clean(1);
-    let end = ClothesMachine::next_state(&start, &ClothesAction::Wear);
-    let expected = ClothesState::Tattered;
-    assert_eq!(end, expected);
-}
+    #[test]
+    fn sm_2_wear_clean_until_tattered() {
+        let start = ClothesState::Clean(1);
+        let end = ClothesMachine::next_state(&start, &ClothesAction::Wear);
+        let expected = ClothesState::Tattered;
+        assert_eq!(end, expected);
+    }
 
-#[test]
-fn sm_2_wear_wet_until_tattered() {
-    let start = ClothesState::Wet(1);
-    let end = ClothesMachine::next_state(&start, &ClothesAction::Wear);
-    let expected = ClothesState::Tattered;
-    assert_eq!(end, expected);
-}
+    #[test]
+    fn sm_2_wear_wet_until_tattered() {
+        let start = ClothesState::Wet(1);
+        let end = ClothesMachine::next_state(&start, &ClothesAction::Wear);
+        let expected = ClothesState::Tattered;
+        assert_eq!(end, expected);
+    }
 
-#[test]
-fn sm_2_wear_dirty_until_tattered() {
-    let start = ClothesState::Dirty(1);
-    let end = ClothesMachine::next_state(&start, &ClothesAction::Wear);
-    let expected = ClothesState::Tattered;
-    assert_eq!(end, expected);
-}
+    #[test]
+    fn sm_2_wear_dirty_until_tattered() {
+        let start = ClothesState::Dirty(1);
+        let end = ClothesMachine::next_state(&start, &ClothesAction::Wear);
+        let expected = ClothesState::Tattered;
+        assert_eq!(end, expected);
+    }
 
-#[test]
-fn sm_2_wash_clean_clothes() {
-    let start = ClothesState::Clean(4);
-    let end = ClothesMachine::next_state(&start, &ClothesAction::Wash);
-    let expected = ClothesState::Wet(3);
-    assert_eq!(end, expected);
-}
+    #[test]
+    fn sm_2_wash_clean_clothes() {
+        let start = ClothesState::Clean(4);
+        let end = ClothesMachine::next_state(&start, &ClothesAction::Wash);
+        let expected = ClothesState::Wet(3);
+        assert_eq!(end, expected);
+    }
 
-#[test]
-fn sm_2_wash_dirty_clothes() {
-    let start = ClothesState::Dirty(4);
-    let end = ClothesMachine::next_state(&start, &ClothesAction::Wash);
-    let expected = ClothesState::Wet(3);
-    assert_eq!(end, expected);
-}
+    #[test]
+    fn sm_2_wash_dirty_clothes() {
+        let start = ClothesState::Dirty(4);
+        let end = ClothesMachine::next_state(&start, &ClothesAction::Wash);
+        let expected = ClothesState::Wet(3);
+        assert_eq!(end, expected);
+    }
 
-#[test]
-fn sm_2_wash_wet_clothes() {
-    let start = ClothesState::Wet(4);
-    let end = ClothesMachine::next_state(&start, &ClothesAction::Wash);
-    let expected = ClothesState::Wet(3);
-    assert_eq!(end, expected);
-}
+    #[test]
+    fn sm_2_wash_wet_clothes() {
+        let start = ClothesState::Wet(4);
+        let end = ClothesMachine::next_state(&start, &ClothesAction::Wash);
+        let expected = ClothesState::Wet(3);
+        assert_eq!(end, expected);
+    }
 
-#[test]
-fn sm_2_wash_tattered_clothes() {
-    let start = ClothesState::Tattered;
-    let end = ClothesMachine::next_state(&start, &ClothesAction::Wash);
-    let expected = ClothesState::Tattered;
-    assert_eq!(end, expected);
-}
+    #[test]
+    fn sm_2_wash_tattered_clothes() {
+        let start = ClothesState::Tattered;
+        let end = ClothesMachine::next_state(&start, &ClothesAction::Wash);
+        let expected = ClothesState::Tattered;
+        assert_eq!(end, expected);
+    }
 
-#[test]
-fn sm_2_wash_clean_until_tattered() {
-    let start = ClothesState::Clean(1);
-    let end = ClothesMachine::next_state(&start, &ClothesAction::Wash);
-    let expected = ClothesState::Tattered;
-    assert_eq!(end, expected);
-}
+    #[test]
+    fn sm_2_wash_clean_until_tattered() {
+        let start = ClothesState::Clean(1);
+        let end = ClothesMachine::next_state(&start, &ClothesAction::Wash);
+        let expected = ClothesState::Tattered;
+        assert_eq!(end, expected);
+    }
 
-#[test]
-fn sm_2_wash_wet_until_tattered() {
-    let start = ClothesState::Wet(1);
-    let end = ClothesMachine::next_state(&start, &ClothesAction::Wash);
-    let expected = ClothesState::Tattered;
-    assert_eq!(end, expected);
-}
+    #[test]
+    fn sm_2_wash_wet_until_tattered() {
+        let start = ClothesState::Wet(1);
+        let end = ClothesMachine::next_state(&start, &ClothesAction::Wash);
+        let expected = ClothesState::Tattered;
+        assert_eq!(end, expected);
+    }
 
-#[test]
-fn sm_2_wash_dirty_until_tattered() {
-    let start = ClothesState::Dirty(1);
-    let end = ClothesMachine::next_state(&start, &ClothesAction::Wash);
-    let expected = ClothesState::Tattered;
-    assert_eq!(end, expected);
-}
+    #[test]
+    fn sm_2_wash_dirty_until_tattered() {
+        let start = ClothesState::Dirty(1);
+        let end = ClothesMachine::next_state(&start, &ClothesAction::Wash);
+        let expected = ClothesState::Tattered;
+        assert_eq!(end, expected);
+    }
 
-#[test]
-fn sm_2_dry_clean_clothes() {
-    let start = ClothesState::Clean(4);
-    let end = ClothesMachine::next_state(&start, &ClothesAction::Dry);
-    let expected = ClothesState::Clean(3);
-    assert_eq!(end, expected);
-}
+    #[test]
+    fn sm_2_dry_clean_clothes() {
+        let start = ClothesState::Clean(4);
+        let end = ClothesMachine::next_state(&start, &ClothesAction::Dry);
+        let expected = ClothesState::Clean(3);
+        assert_eq!(end, expected);
+    }
 
-#[test]
-fn sm_2_dry_dirty_clothes() {
-    let start = ClothesState::Dirty(4);
-    let end = ClothesMachine::next_state(&start, &ClothesAction::Dry);
-    let expected = ClothesState::Dirty(3);
-    assert_eq!(end, expected);
-}
+    #[test]
+    fn sm_2_dry_dirty_clothes() {
+        let start = ClothesState::Dirty(4);
+        let end = ClothesMachine::next_state(&start, &ClothesAction::Dry);
+        let expected = ClothesState::Dirty(3);
+        assert_eq!(end, expected);
+    }
 
-#[test]
-fn sm_2_dry_wet_clothes() {
-    let start = ClothesState::Wet(4);
-    let end = ClothesMachine::next_state(&start, &ClothesAction::Dry);
-    let expected = ClothesState::Clean(3);
-    assert_eq!(end, expected);
-}
+    #[test]
+    fn sm_2_dry_wet_clothes() {
+        let start = ClothesState::Wet(4);
+        let end = ClothesMachine::next_state(&start, &ClothesAction::Dry);
+        let expected = ClothesState::Clean(3);
+        assert_eq!(end, expected);
+    }
 
-#[test]
-fn sm_2_dry_tattered_clothes() {
-    let start = ClothesState::Tattered;
-    let end = ClothesMachine::next_state(&start, &ClothesAction::Dry);
-    let expected = ClothesState::Tattered;
-    assert_eq!(end, expected);
-}
+    #[test]
+    fn sm_2_dry_tattered_clothes() {
+        let start = ClothesState::Tattered;
+        let end = ClothesMachine::next_state(&start, &ClothesAction::Dry);
+        let expected = ClothesState::Tattered;
+        assert_eq!(end, expected);
+    }
 
-#[test]
-fn sm_2_dry_clean_until_tattered() {
-    let start = ClothesState::Clean(1);
-    let end = ClothesMachine::next_state(&start, &ClothesAction::Dry);
-    let expected = ClothesState::Tattered;
-    assert_eq!(end, expected);
-}
+    #[test]
+    fn sm_2_dry_clean_until_tattered() {
+        let start = ClothesState::Clean(1);
+        let end = ClothesMachine::next_state(&start, &ClothesAction::Dry);
+        let expected = ClothesState::Tattered;
+        assert_eq!(end, expected);
+    }
 
-#[test]
-fn sm_2_dry_cwet_until_tattered() {
-    let start = ClothesState::Wet(1);
-    let end = ClothesMachine::next_state(&start, &ClothesAction::Dry);
-    let expected = ClothesState::Tattered;
-    assert_eq!(end, expected);
-}
+    #[test]
+    fn sm_2_dry_cwet_until_tattered() {
+        let start = ClothesState::Wet(1);
+        let end = ClothesMachine::next_state(&start, &ClothesAction::Dry);
+        let expected = ClothesState::Tattered;
+        assert_eq!(end, expected);
+    }
 
-#[test]
-fn sm_2_dry_dirty_until_tattered() {
-    let start = ClothesState::Dirty(1);
-    let end = ClothesMachine::next_state(&start, &ClothesAction::Dry);
-    let expected = ClothesState::Tattered;
-    assert_eq!(end, expected);
+    #[test]
+    fn sm_2_dry_dirty_until_tattered() {
+        let start = ClothesState::Dirty(1);
+        let end = ClothesMachine::next_state(&start, &ClothesAction::Dry);
+        let expected = ClothesState::Tattered;
+        assert_eq!(end, expected);
+    }
 }
