@@ -51,14 +51,51 @@ pub struct Atm {
     /// All the keys that have been pressed since the last `Enter`
     keystroke_register: Vec<Key>,
 }
-
+fn hash_pin(keystrokes: &[Key]) -> u64 {
+    keystrokes
+        .iter()
+        .fold(0, |acc, key| 31 * acc + (*key).clone() as u64)
+}
 impl StateMachine for Atm {
-    // Notice that we are using the same type for the state as we are using for the machine this time.
     type State = Self;
     type Transition = Action;
 
     fn next_state(starting_state: &Self::State, t: &Self::Transition) -> Self::State {
-        todo!("Exercise 4")
+        let mut new_state = starting_state.clone();
+
+        match t {
+            Action::SwipeCard(pin_hash) => {
+                new_state.expected_pin_hash = Auth::Authenticating(*pin_hash);
+                new_state.keystroke_register.clear();
+            }
+            Action::PressKey(key) => match &mut new_state.expected_pin_hash {
+                Auth::Waiting => {}
+                Auth::Authenticating(expected_pin_hash) => match key {
+                    Key::Enter => {
+                        let entered_pin_hash = hash_pin(&new_state.keystroke_register);
+                        if entered_pin_hash == *expected_pin_hash {
+                            new_state.expected_pin_hash = Auth::Authenticated;
+                        } else {
+                            new_state.expected_pin_hash = Auth::Waiting;
+                        }
+                        new_state.keystroke_register.clear();
+                    }
+                    _ => {
+                        new_state.keystroke_register.push(key.clone());
+                    }
+                },
+                Auth::Authenticated => match key {
+                    Key::Enter => {
+                        new_state.keystroke_register.clear();
+                    }
+                    _ => {
+                        new_state.keystroke_register.push(key.clone());
+                    }
+                },
+            },
+        }
+
+        new_state
     }
 }
 
